@@ -33,6 +33,14 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${technology.variable} h-full antialiased`}
     >
+      <head>
+        <link
+          rel="preload"
+          href="/sounds/click.mp3"
+          as="fetch"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
