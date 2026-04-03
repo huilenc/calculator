@@ -9,26 +9,51 @@ export default function Home() {
   const justEvaluatedRef = useRef(false);
   const [isOn, setIsOn] = useState(false);
 
-  const POOL_SIZE = 5;
-  const poolRef = useRef<HTMLAudioElement[]>([]);
-  const poolIdxRef = useRef(0);
+  // AudioContext created lazily on first click (iOS requires user gesture)
+  const ctxRef = useRef<AudioContext | null>(null);
+  const bufRef = useRef<AudioBuffer | null>(null);
+  const rawRef = useRef<ArrayBuffer | null>(null);
 
   useEffect(() => {
-    poolRef.current = Array.from({ length: POOL_SIZE }, () => {
-      const a = new Audio("/sounds/click.mp3");
-      a.preload = "auto";
-      a.volume = 0.5;
-      return a;
-    });
+    // Fetch bytes only — no AudioContext yet, so iOS won't suspend it
+    fetch("/sounds/click.mp3")
+      .then((r) => r.arrayBuffer())
+      .then((bytes) => {
+        rawRef.current = bytes;
+      })
+      .catch(() => {});
   }, []);
 
   const playClick = useCallback(() => {
-    const pool = poolRef.current;
-    if (!pool.length) return;
-    const audio = pool[poolIdxRef.current];
-    poolIdxRef.current = (poolIdxRef.current + 1) % POOL_SIZE;
-    audio.currentTime = 0;
-    audio.play().catch(() => {});
+    const fire = (ctx: AudioContext, buf: AudioBuffer) => {
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const gain = ctx.createGain();
+      gain.gain.value = 0.5;
+      src.connect(gain);
+      gain.connect(ctx.destination);
+      src.start();
+    };
+
+    if (!ctxRef.current) ctxRef.current = new AudioContext();
+    const ctx = ctxRef.current;
+
+    if (bufRef.current) {
+      fire(ctx, bufRef.current);
+      return;
+    }
+
+    const raw = rawRef.current;
+    if (raw) {
+      rawRef.current = null;
+      ctx
+        .decodeAudioData(raw)
+        .then((decoded) => {
+          bufRef.current = decoded;
+          fire(ctx, decoded);
+        })
+        .catch(() => {});
+    }
   }, []);
 
   const handleOnOff = useCallback(() => {
