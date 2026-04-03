@@ -12,8 +12,13 @@ import {
   DISPLAY_Y,
 } from "@/app/utils/constants";
 import { RoundedBox, Text } from "@react-three/drei";
+import { memo } from "react";
 
-export function BackDetail({ isOn }: { isOn: boolean }) {
+export const BackDetail = memo(function BackDetail({
+  isOn,
+}: {
+  isOn: boolean;
+}) {
   const materialInset = {
     roughness: 0.9,
     metalness: 0,
@@ -115,4 +120,4 @@ export function BackDetail({ isOn }: { isOn: boolean }) {
       })}
     </group>
   );
-}
+});

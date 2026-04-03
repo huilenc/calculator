@@ -9,9 +9,10 @@ import {
 import { keyLayout } from "@/app/utils/keyLayout";
 import { Calculator3DProps } from "@/app/utils/types";
 import { RoundedBox } from "@react-three/drei";
+import { memo } from "react";
 import { CalculatorKey3D } from "./CalculatorKey3D";
 
-export function CalculatorBody({
+export const CalculatorBody = memo(function CalculatorBody({
   isOn,
   handleClick,
 }: Omit<Calculator3DProps, "input">) {
@@ -41,4 +42,4 @@ export function CalculatorBody({
       })}
     </>
   );
-}
+});

@@ -8,10 +8,10 @@ import {
 import { CalculatorKey3DProps } from "@/app/utils/types";
 import { RoundedBox, Text } from "@react-three/drei";
 import { ThreeEvent } from "@react-three/fiber";
-import { useRef } from "react";
+import { memo, useCallback, useRef } from "react";
 import * as THREE from "three";
 
-export function CalculatorKey3D({
+export const CalculatorKey3D = memo(function CalculatorKey3D({
   character,
   position,
   isOn,
@@ -23,13 +23,20 @@ export function CalculatorKey3D({
   const baseColor = character.color ?? COLOR_KEY;
   const dim = !isOn && !isOnOff;
 
-  const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
+  const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     (e.target as HTMLElement)?.setPointerCapture?.(e.pointerId);
-
     if (!isOn && !isOnOff) return;
     onPress(character);
-  };
+  }, [isOn, isOnOff, onPress, character]);
+
+  const handlePointerUp = useCallback((e: ThreeEvent<PointerEvent>) => {
+    try {
+      (e.target as HTMLElement)?.releasePointerCapture?.(e.pointerId);
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
 
   return (
     <RoundedBox
@@ -39,11 +46,7 @@ export function CalculatorKey3D({
       smoothness={4}
       position={position}
       onPointerDown={handlePointerDown}
-      onPointerUp={(e) => {
-        try {
-          (e.target as HTMLElement)?.releasePointerCapture?.(e.pointerId);
-        } catch {}
-      }}
+      onPointerUp={handlePointerUp}
     >
       <meshStandardMaterial
         color={isOnOff ? baseColor : dim ? baseColor : baseColor + "40"}
@@ -62,4 +65,4 @@ export function CalculatorKey3D({
       </Text>
     </RoundedBox>
   );
-}
+});

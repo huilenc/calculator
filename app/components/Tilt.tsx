@@ -57,8 +57,8 @@ export function Tilt({ isOn, input, handleClick }: Calculator3DProps) {
       rotateArmed.current = false;
       try {
         gl.domElement.releasePointerCapture(e.pointerId);
-      } catch {
-        /* not capturing */
+      } catch (error) {
+        console.error(error);
       }
     };
     document.addEventListener("pointerdown", onPointerDown, true);
