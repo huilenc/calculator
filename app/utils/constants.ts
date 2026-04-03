@@ -3,7 +3,7 @@ import { characters } from "@/app/utils/calc/characters";
 export const BODY_W = 5;
 export const BODY_H = 6.5;
 export const BODY_D = 0.6;
-export const ROTATE_SPEED = 0.005;
+export const ROTATE_SPEED = 0.008;
 export const DRAG_THRESHOLD_PX = 6;
 export const RETURN_SMOOTH = 3;
 export const MAX_TILT = 360;

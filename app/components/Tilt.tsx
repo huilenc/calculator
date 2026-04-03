@@ -46,9 +46,11 @@ export function Tilt({ isOn, input, handleClick }: Calculator3DProps) {
       const dx = e.clientX - lastPointer.current.x;
       const dy = e.clientY - lastPointer.current.y;
       lastPointer.current = { x: e.clientX, y: e.clientY };
+      const speed =
+        e.pointerType === "touch" ? ROTATE_SPEED * 1.2 : ROTATE_SPEED;
       // Horizontal drag → spin around Y; vertical → tilt X
-      group.rotation.y += dx * ROTATE_SPEED;
-      group.rotation.x += dy * ROTATE_SPEED;
+      group.rotation.y += dx * speed;
+      group.rotation.x += dy * speed;
       clampTiltAngles(group);
     };
     const onPointerUp = (e: PointerEvent) => {
