@@ -15,28 +15,13 @@ export default function Home() {
   const rawRef = useRef<ArrayBuffer | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    // Fetch + decode as soon as possible so the first click only resumes/plays.
+    // Fetch bytes only — no AudioContext yet, so iOS won't suspend it
     fetch("/sounds/click.mp3")
       .then((r) => r.arrayBuffer())
-      .then(async (bytes) => {
-        if (cancelled) return;
-        try {
-          const decodeCtx = new AudioContext();
-          const decoded = await decodeCtx.decodeAudioData(bytes.slice(0));
-          await decodeCtx.close();
-          if (!cancelled) {
-            bufRef.current = decoded;
-            rawRef.current = null;
-          }
-        } catch {
-          if (!cancelled) rawRef.current = bytes;
-        }
+      .then((bytes) => {
+        rawRef.current = bytes;
       })
       .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   const playClick = useCallback(() => {
