@@ -1,4 +1,4 @@
-import { Character } from "@/app/utils/calc/characters";
+import { Character } from "@/app/utils/types";
 
 interface ButtonProps {
   character: Character;
