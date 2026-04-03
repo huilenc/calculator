@@ -1,65 +1,178 @@
-import Image from "next/image";
+"use client";
+import { Character } from "@/app/utils/calc/characters";
+import { evaluateExpression } from "@/app/utils/calc/evaluateExpression";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Calculator3D from "./components/Calculator3D";
+
+export const playClick = (
+  clickRef: React.RefObject<HTMLAudioElement | null>,
+) => {
+  const click = clickRef.current;
+  if (!click) return;
+  click.currentTime = 0;
+  click.play().catch(() => {});
+};
 
 export default function Home() {
+  const [input, setInput] = useState("");
+  const [justEvaluated, setJustEvaluated] = useState(false);
+  const [isOn, setIsOn] = useState(false);
+
+  const clickRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    clickRef.current = new Audio("/sounds/click.mp3");
+    clickRef.current.preload = "auto";
+    clickRef.current.volume = 0.5;
+  }, []);
+
+  const handleOnOff = useCallback(() => {
+    setInput(isOn ? "" : "0");
+    setIsOn(!isOn);
+  }, [isOn]);
+
+  const clearEntry = useCallback(() => {
+    if (justEvaluated) {
+      setInput("0");
+      setJustEvaluated(false);
+    } else {
+      setInput((prev) => {
+        const next = prev.slice(0, -1);
+        if (next === "" || next === "-") {
+          return "0";
+        }
+        return next;
+      });
+    }
+  }, [justEvaluated]);
+
+  const clearAll = useCallback(() => {
+    setInput("0");
+  }, []);
+
+  const equals = useCallback(() => {
+    setInput((prev) => {
+      try {
+        return String(evaluateExpression(prev));
+      } catch (error) {
+        return String(error);
+      }
+    });
+    setJustEvaluated(true);
+  }, []);
+
+  const handleOperator = useCallback(
+    (character: Character) => {
+      if (input.length > 0) {
+        if (
+          character.id === "fraction" ||
+          character.id === "square" ||
+          character.id === "squareRoot" ||
+          character.id === "percentage"
+        ) {
+          setInput((prev) => {
+            try {
+              return String(evaluateExpression(prev + character.symbol));
+            } catch {
+              return prev;
+            }
+          });
+        } else if (character.id === "sign") {
+          setInput((prev) =>
+            prev.startsWith("-")
+              ? prev.slice(1)
+              : prev === "0"
+                ? "0"
+                : "-" + prev,
+          );
+        } else {
+          setInput((prev) => {
+            const lastChar = prev[prev.length - 1];
+            if (["+", "-", "*", "/"].includes(lastChar)) {
+              return prev.slice(0, -1) + character.symbol;
+            }
+            return prev + character.symbol;
+          });
+        }
+      }
+      setJustEvaluated(false);
+    },
+    [input],
+  );
+
+  const handleNumber = useCallback(
+    (character: Character) => {
+      if (character.id === "decimal") {
+        const lastOpIdx = Math.max(
+          input.lastIndexOf("+"),
+          input.lastIndexOf("-"),
+          input.lastIndexOf("*"),
+          input.lastIndexOf("/"),
+        );
+        if (input.slice(lastOpIdx + 1).includes(".")) return;
+      }
+
+      if (justEvaluated) {
+        setInput(character.id === "decimal" ? "0." : character.symbol);
+        setJustEvaluated(false);
+      } else {
+        if (input === "0") {
+          setInput(character.id === "decimal" ? "0." : character.symbol);
+        } else {
+          setInput((prev) => prev + character.symbol);
+        }
+      }
+    },
+    [input, justEvaluated],
+  );
+
+  const handleClick = useCallback(
+    (character: Character) => {
+      playClick(clickRef);
+      if (!isOn && character.id !== "onOff") return;
+      switch (character.type) {
+        case "action":
+          if (character.id === "onOff") {
+            // handleOnOff();
+            handleOnOff();
+          }
+
+          if (character.id === "clearEntry") {
+            clearEntry();
+          }
+
+          if (character.id === "clearAll") {
+            clearAll();
+          }
+          if (character.id === "equals") {
+            equals();
+          }
+          break;
+        case "operator":
+          handleOperator(character);
+          break;
+        case "number":
+          handleNumber(character);
+          break;
+      }
+    },
+    [
+      isOn,
+      handleOnOff,
+      clearEntry,
+      clearAll,
+      equals,
+      handleOperator,
+      handleNumber,
+    ],
+  );
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div
+      className={`${!isOn && "brightness-50"} overflow-visible flex flex-col flex-1 items-center justify-center bg-blue-100 font-sans h-screen`}
+    >
+      {/* <Calculator isOn={isOn} input={input} handleClick={handleClick} /> */}
+      <Calculator3D isOn={isOn} input={input} handleClick={handleClick} />
     </div>
   );
 }

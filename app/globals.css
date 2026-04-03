@@ -10,6 +10,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-calc: var(--font-technology);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,3 +25,27 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #D46B6B #FAD4D4;
+}
+
+/* .scrollbar::-webkit-scrollbar {
+  height: 8px;
+  padding: 2px;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  background: #FAD4D4;
+  border-radius: 999px;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background: #D46B6B;
+  border-radius: 999px;
+}
+
+.scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #A55C5C;
+} */
