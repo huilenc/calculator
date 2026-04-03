@@ -4,46 +4,31 @@ import { Character } from "@/app/utils/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Calculator3D } from "./components/Calculator3D";
 
-
 export default function Home() {
   const [input, setInput] = useState("");
   const justEvaluatedRef = useRef(false);
   const [isOn, setIsOn] = useState(false);
 
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const audioBufferRef = useRef<AudioBuffer | null>(null);
+  const POOL_SIZE = 5;
+  const poolRef = useRef<HTMLAudioElement[]>([]);
+  const poolIdxRef = useRef(0);
 
   useEffect(() => {
-    const ctx = new AudioContext();
-    audioCtxRef.current = ctx;
-    fetch("/sounds/click.mp3")
-      .then((r) => r.arrayBuffer())
-      .then((buf) => ctx.decodeAudioData(buf))
-      .then((decoded) => {
-        audioBufferRef.current = decoded;
-      })
-      .catch(() => {});
-    return () => { ctx.close(); };
+    poolRef.current = Array.from({ length: POOL_SIZE }, () => {
+      const a = new Audio("/sounds/click.mp3");
+      a.preload = "auto";
+      a.volume = 0.5;
+      return a;
+    });
   }, []);
 
   const playClick = useCallback(() => {
-    const ctx = audioCtxRef.current;
-    const buf = audioBufferRef.current;
-    if (!ctx || !buf) return;
-    const fire = () => {
-      const src = ctx.createBufferSource();
-      src.buffer = buf;
-      const gain = ctx.createGain();
-      gain.gain.value = 0.5;
-      src.connect(gain);
-      gain.connect(ctx.destination);
-      src.start();
-    };
-    if (ctx.state === "suspended") {
-      ctx.resume().then(fire);
-    } else {
-      fire();
-    }
+    const pool = poolRef.current;
+    if (!pool.length) return;
+    const audio = pool[poolIdxRef.current];
+    poolIdxRef.current = (poolIdxRef.current + 1) % POOL_SIZE;
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
   }, []);
 
   const handleOnOff = useCallback(() => {
