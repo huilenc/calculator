@@ -4,26 +4,46 @@ import { Character } from "@/app/utils/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Calculator3D } from "./components/Calculator3D";
 
-export const playClick = (
-  clickRef: React.RefObject<HTMLAudioElement | null>,
-) => {
-  const click = clickRef.current;
-  if (!click) return;
-  click.currentTime = 0;
-  click.play().catch(() => {});
-};
 
 export default function Home() {
   const [input, setInput] = useState("");
   const justEvaluatedRef = useRef(false);
   const [isOn, setIsOn] = useState(false);
 
-  const clickRef = useRef<HTMLAudioElement | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const audioBufferRef = useRef<AudioBuffer | null>(null);
 
   useEffect(() => {
-    clickRef.current = new Audio("/sounds/click.mp3");
-    clickRef.current.preload = "auto";
-    clickRef.current.volume = 0.5;
+    const ctx = new AudioContext();
+    audioCtxRef.current = ctx;
+    fetch("/sounds/click.mp3")
+      .then((r) => r.arrayBuffer())
+      .then((buf) => ctx.decodeAudioData(buf))
+      .then((decoded) => {
+        audioBufferRef.current = decoded;
+      })
+      .catch(() => {});
+    return () => { ctx.close(); };
+  }, []);
+
+  const playClick = useCallback(() => {
+    const ctx = audioCtxRef.current;
+    const buf = audioBufferRef.current;
+    if (!ctx || !buf) return;
+    const fire = () => {
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const gain = ctx.createGain();
+      gain.gain.value = 0.5;
+      src.connect(gain);
+      gain.connect(ctx.destination);
+      src.start();
+    };
+    if (ctx.state === "suspended") {
+      ctx.resume().then(fire);
+    } else {
+      fire();
+    }
   }, []);
 
   const handleOnOff = useCallback(() => {
@@ -119,7 +139,7 @@ export default function Home() {
 
   const handleClick = useCallback(
     (character: Character) => {
-      playClick(clickRef);
+      playClick();
       if (!isOn && character.id !== "onOff") return;
       switch (character.type) {
         case "action":
@@ -148,6 +168,7 @@ export default function Home() {
       }
     },
     [
+      playClick,
       isOn,
       handleOnOff,
       clearEntry,
