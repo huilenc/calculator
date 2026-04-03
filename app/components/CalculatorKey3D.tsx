@@ -26,7 +26,7 @@ export const CalculatorKey3D = memo(function CalculatorKey3D({
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;
-    const targetZ = position[2] + (pressedRef.current ? -0.12 : 0);
+    const targetZ = position[2] + (pressedRef.current ? -0.08 : 0);
     const t = 1 - Math.exp(-22 * delta);
     meshRef.current.position.z = THREE.MathUtils.lerp(
       meshRef.current.position.z,
