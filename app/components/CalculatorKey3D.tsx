@@ -7,7 +7,7 @@ import {
 } from "@/app/utils/constants";
 import { CalculatorKey3DProps } from "@/app/utils/types";
 import { RoundedBox, Text } from "@react-three/drei";
-import { ThreeEvent } from "@react-three/fiber";
+import { ThreeEvent, useFrame } from "@react-three/fiber";
 import { memo, useCallback, useRef } from "react";
 import * as THREE from "three";
 
@@ -18,22 +18,37 @@ export const CalculatorKey3D = memo(function CalculatorKey3D({
   onPress,
 }: CalculatorKey3DProps) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const pressedRef = useRef(false);
   const isOnOff = character.id === "onOff";
   const isFraction = character.id === "fraction";
   const baseColor = character.color ?? COLOR_KEY;
   const dim = !isOn && !isOnOff;
 
+  useFrame((_, delta) => {
+    if (!meshRef.current) return;
+    const targetZ = position[2] + (pressedRef.current ? -0.12 : 0);
+    const t = 1 - Math.exp(-22 * delta);
+    meshRef.current.position.z = THREE.MathUtils.lerp(
+      meshRef.current.position.z,
+      targetZ,
+      t,
+    );
+  });
+
   const handlePointerDown = useCallback(
     (e: ThreeEvent<PointerEvent>) => {
       e.stopPropagation();
       (e.target as HTMLElement)?.setPointerCapture?.(e.pointerId);
-      if (!isOn && !isOnOff) return;
-      onPress(character);
+      pressedRef.current = true;
+      if (isOn || isOnOff) {
+        onPress(character);
+      }
     },
     [isOn, isOnOff, onPress, character],
   );
 
   const handlePointerUp = useCallback((e: ThreeEvent<PointerEvent>) => {
+    pressedRef.current = false;
     try {
       (e.target as HTMLElement)?.releasePointerCapture?.(e.pointerId);
     } catch (error) {
