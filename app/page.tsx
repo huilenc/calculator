@@ -1,6 +1,6 @@
 "use client";
-import { Character } from "@/app/utils/calc/characters";
 import { evaluateExpression } from "@/app/utils/calc/evaluateExpression";
+import { Character } from "@/app/utils/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Calculator3D from "./components/Calculator3D";
 
@@ -171,7 +171,6 @@ export default function Home() {
     <div
       className={`${!isOn && "brightness-50"} overflow-visible flex flex-col flex-1 items-center justify-center bg-blue-100 font-sans h-screen`}
     >
-      {/* <Calculator isOn={isOn} input={input} handleClick={handleClick} /> */}
       <Calculator3D isOn={isOn} input={input} handleClick={handleClick} />
     </div>
   );

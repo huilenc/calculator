@@ -3,8 +3,8 @@
 import { Calculator3DProps } from "@/app/utils/types";
 import { Canvas } from "@react-three/fiber";
 import { BODY_H, BODY_W } from "../utils/constants";
-import { CalculatorBody } from "./3DCalculator/CalculatorBody";
-import { Tilt } from "./3DCalculator/Tilt";
+import { CalculatorBody } from "./CalculatorBody";
+import { Tilt } from "./Tilt";
 
 function Scene({ isOn, input, handleClick }: Calculator3DProps) {
   return (
