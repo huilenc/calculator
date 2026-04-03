@@ -23,12 +23,15 @@ export const CalculatorKey3D = memo(function CalculatorKey3D({
   const baseColor = character.color ?? COLOR_KEY;
   const dim = !isOn && !isOnOff;
 
-  const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation();
-    (e.target as HTMLElement)?.setPointerCapture?.(e.pointerId);
-    if (!isOn && !isOnOff) return;
-    onPress(character);
-  }, [isOn, isOnOff, onPress, character]);
+  const handlePointerDown = useCallback(
+    (e: ThreeEvent<PointerEvent>) => {
+      e.stopPropagation();
+      (e.target as HTMLElement)?.setPointerCapture?.(e.pointerId);
+      if (!isOn && !isOnOff) return;
+      onPress(character);
+    },
+    [isOn, isOnOff, onPress, character],
+  );
 
   const handlePointerUp = useCallback((e: ThreeEvent<PointerEvent>) => {
     try {
@@ -49,7 +52,7 @@ export const CalculatorKey3D = memo(function CalculatorKey3D({
       onPointerUp={handlePointerUp}
     >
       <meshStandardMaterial
-        color={isOnOff ? baseColor : dim ? baseColor : baseColor + "40"}
+        color={baseColor}
         roughness={0.45}
         metalness={0.12}
       />
